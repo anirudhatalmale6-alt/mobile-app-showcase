@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FoodDash - Food Delivery App</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:#0a0a0a; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+
+.phone-frame {
+  width:375px; height:812px; background:#fff; border-radius:44px; overflow:hidden;
+  position:relative; box-shadow: 0 50px 100px rgba(0,0,0,0.5);
+  border: 8px solid #1a1a1a;
+}
+
+.notch {
+  position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:150px; height:34px; background:#1a1a1a; border-radius:0 0 20px 20px; z-index:100;
+}
+
+.screen { width:100%; height:100%; overflow-y:auto; overflow-x:hidden; position:relative; display:none; }
+.screen.active { display:block; }
+.screen::-webkit-scrollbar { display:none; }
+
+/* ===== HOME SCREEN ===== */
+.home-screen { background: linear-gradient(135deg, #fff5f0 0%, #ffffff 50%); }
+.home-header { padding:50px 24px 16px; }
+.home-greeting { font-size:14px; color:#888; font-weight:500; }
+.home-title { font-size:26px; font-weight:800; color:#1a1a1a; margin-top:4px; }
+.home-title span { color:#ff4d00; }
+
+.search-bar {
+  margin:16px 24px; background:#f5f5f5; border-radius:16px; padding:14px 18px;
+  display:flex; align-items:center; gap:10px;
+}
+.search-bar svg { width:20px; height:20px; color:#aaa; flex-shrink:0; }
+.search-bar span { color:#aaa; font-size:14px; }
+
+.promo-banner {
+  margin:8px 24px; background: linear-gradient(135deg, #ff4d00, #ff7a33);
+  border-radius:20px; padding:24px; position:relative; overflow:hidden;
+}
+.promo-banner::after {
+  content:''; position:absolute; top:-20px; right:-20px; width:120px; height:120px;
+  background:rgba(255,255,255,0.15); border-radius:50%;
+}
+.promo-banner::before {
+  content:''; position:absolute; bottom:-30px; right:40px; width:80px; height:80px;
+  background:rgba(255,255,255,0.1); border-radius:50%;
+}
+.promo-tag { background:rgba(255,255,255,0.25); color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; display:inline-block; letter-spacing:0.5px; }
+.promo-text { color:#fff; font-size:22px; font-weight:800; margin-top:10px; line-height:1.3; }
+.promo-sub { color:rgba(255,255,255,0.85); font-size:13px; margin-top:6px; }
+
+.section-header { display:flex; justify-content:space-between; align-items:center; padding:24px 24px 12px; }
+.section-title { font-size:18px; font-weight:700; color:#1a1a1a; }
+.section-link { font-size:13px; color:#ff4d00; font-weight:600; }
+
+.categories { display:flex; gap:16px; padding:0 24px; overflow-x:auto; }
+.categories::-webkit-scrollbar { display:none; }
+.cat-item { display:flex; flex-direction:column; align-items:center; gap:8px; min-width:70px; cursor:pointer; }
+.cat-icon {
+  width:60px; height:60px; border-radius:18px; display:flex; align-items:center; justify-content:center;
+  font-size:28px; transition: transform 0.2s;
+}
+.cat-icon:hover { transform:scale(1.1); }
+.cat-item span { font-size:12px; font-weight:600; color:#555; }
+.cat-1 .cat-icon { background: linear-gradient(135deg,#fff3e0,#ffe0b2); }
+.cat-2 .cat-icon { background: linear-gradient(135deg,#e8f5e9,#c8e6c9); }
+.cat-3 .cat-icon { background: linear-gradient(135deg,#fce4ec,#f8bbd0); }
+.cat-4 .cat-icon { background: linear-gradient(135deg,#e3f2fd,#bbdefb); }
+.cat-5 .cat-icon { background: linear-gradient(135deg,#f3e5f5,#e1bee7); }
+
+.food-cards { padding:0 24px 20px; display:flex; flex-direction:column; gap:16px; }
+.food-card {
+  background:#fff; border-radius:20px; overflow:hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06); cursor:pointer; transition: transform 0.2s;
+}
+.food-card:hover { transform:translateY(-2px); }
+.food-img {
+  width:100%; height:160px; object-fit:cover; position:relative;
+}
+.food-img-wrap { position:relative; }
+.food-img-wrap .food-img-bg {
+  width:100%; height:160px; display:flex; align-items:center; justify-content:center;
+  font-size:60px;
+}
+.food-badge {
+  position:absolute; top:12px; left:12px; background:#ff4d00; color:#fff;
+  font-size:11px; font-weight:700; padding:4px 10px; border-radius:8px;
+}
+.food-fav {
+  position:absolute; top:12px; right:12px; width:34px; height:34px; background:rgba(255,255,255,0.9);
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+}
+.food-info { padding:14px 16px; }
+.food-name { font-size:16px; font-weight:700; color:#1a1a1a; }
+.food-desc { font-size:12px; color:#888; margin-top:3px; }
+.food-bottom { display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
+.food-price { font-size:18px; font-weight:800; color:#ff4d00; }
+.food-meta { display:flex; align-items:center; gap:12px; }
+.food-rating { display:flex; align-items:center; gap:3px; font-size:12px; font-weight:600; color:#333; }
+.food-time { font-size:12px; color:#888; }
+
+.img-pizza { background: linear-gradient(135deg, #ffcc80, #ff8a65); }
+.img-burger { background: linear-gradient(135deg, #a5d6a7, #66bb6a); }
+.img-sushi { background: linear-gradient(135deg, #ef9a9a, #e57373); }
+.img-pasta { background: linear-gradient(135deg, #ffe082, #ffd54f); }
+
+/* ===== ORDER SCREEN ===== */
+.order-screen { background:#fafafa; }
+.order-header {
+  background: linear-gradient(135deg, #ff4d00, #ff7a33);
+  padding:50px 24px 30px; border-radius:0 0 30px 30px;
+}
+.order-back { color:#fff; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; }
+.order-title-text { color:#fff; font-size:24px; font-weight:800; margin-top:12px; }
+.order-subtitle { color:rgba(255,255,255,0.8); font-size:13px; margin-top:4px; }
+
+.order-card {
+  background:#fff; margin:20px 24px; border-radius:20px; padding:20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+.order-item { display:flex; gap:14px; padding:12px 0; border-bottom:1px solid #f0f0f0; }
+.order-item:last-child { border-bottom:none; }
+.order-item-img {
+  width:60px; height:60px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:30px; flex-shrink:0;
+}
+.order-item-info { flex:1; }
+.order-item-name { font-size:15px; font-weight:700; color:#1a1a1a; }
+.order-item-extra { font-size:12px; color:#888; margin-top:2px; }
+.order-item-bottom { display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+.order-item-price { font-size:16px; font-weight:700; color:#ff4d00; }
+.qty-control {
+  display:flex; align-items:center; gap:12px; background:#f5f5f5; border-radius:10px; padding:4px 8px;
+}
+.qty-btn {
+  width:28px; height:28px; border-radius:8px; border:none; font-size:16px; font-weight:700;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+.qty-minus { background:#ffe0d0; color:#ff4d00; }
+.qty-plus { background:#ff4d00; color:#fff; }
+.qty-num { font-size:15px; font-weight:700; min-width:20px; text-align:center; }
+
+.order-summary {
+  background:#fff; margin:0 24px 20px; border-radius:20px; padding:20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+.summary-row { display:flex; justify-content:space-between; padding:8px 0; font-size:14px; color:#666; }
+.summary-row.total { border-top:2px solid #f0f0f0; margin-top:8px; padding-top:14px; font-size:18px; font-weight:800; color:#1a1a1a; }
+
+.order-btn {
+  margin:0 24px 30px; background: linear-gradient(135deg, #ff4d00, #ff7a33);
+  color:#fff; border:none; border-radius:16px; padding:18px; width:calc(100% - 48px);
+  font-size:16px; font-weight:700; cursor:pointer; text-align:center;
+  box-shadow: 0 8px 25px rgba(255,77,0,0.3);
+}
+
+/* ===== TRACKING SCREEN ===== */
+.track-screen { background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); }
+.track-header { padding:50px 24px 20px; }
+.track-back { color:#fff; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; }
+.track-title-text { color:#fff; font-size:24px; font-weight:800; margin-top:12px; }
+.track-order-id { color:rgba(255,255,255,0.5); font-size:13px; margin-top:4px; }
+
+.track-map {
+  margin:0 24px; height:200px; border-radius:20px; overflow:hidden;
+  background: linear-gradient(135deg, #2d3561, #1a1a3e);
+  position:relative; display:flex; align-items:center; justify-content:center;
+}
+.map-dot {
+  width:16px; height:16px; background:#ff4d00; border-radius:50%; position:relative;
+  box-shadow: 0 0 20px rgba(255,77,0,0.6);
+}
+.map-dot::after {
+  content:''; position:absolute; top:-8px; left:-8px; width:32px; height:32px;
+  border:2px solid rgba(255,77,0,0.3); border-radius:50; animation:pulse 2s infinite;
+}
+.map-line {
+  position:absolute; top:50%; left:30%; width:40%; height:2px;
+  background: repeating-linear-gradient(90deg, #ff4d00 0px, #ff4d00 8px, transparent 8px, transparent 16px);
+}
+.map-pin-a { position:absolute; left:25%; top:45%; font-size:24px; }
+.map-pin-b { position:absolute; right:20%; top:40%; font-size:24px; }
+
+.track-status {
+  background:rgba(255,255,255,0.05); margin:20px 24px; border-radius:20px; padding:24px;
+  backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.08);
+}
+.track-step { display:flex; gap:16px; position:relative; padding-bottom:28px; }
+.track-step:last-child { padding-bottom:0; }
+.track-step::before {
+  content:''; position:absolute; left:15px; top:36px; width:2px; bottom:0;
+  background:rgba(255,255,255,0.1);
+}
+.track-step:last-child::before { display:none; }
+.track-step.done::before { background:#ff4d00; }
+.step-dot {
+  width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:14px; flex-shrink:0; background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.3);
+}
+.track-step.done .step-dot { background:#ff4d00; color:#fff; }
+.track-step.current .step-dot { background:#ff4d00; color:#fff; box-shadow: 0 0 15px rgba(255,77,0,0.5); }
+.step-info {}
+.step-title { font-size:14px; font-weight:600; color:rgba(255,255,255,0.4); }
+.track-step.done .step-title, .track-step.current .step-title { color:#fff; }
+.step-time { font-size:12px; color:rgba(255,255,255,0.3); margin-top:2px; }
+.track-step.done .step-time, .track-step.current .step-time { color:rgba(255,255,255,0.6); }
+
+.track-driver {
+  background:rgba(255,255,255,0.05); margin:20px 24px; border-radius:20px; padding:20px;
+  display:flex; align-items:center; gap:14px;
+  border:1px solid rgba(255,255,255,0.08);
+}
+.driver-avatar {
+  width:50px; height:50px; border-radius:50%; background: linear-gradient(135deg,#ff4d00,#ff7a33);
+  display:flex; align-items:center; justify-content:center; font-size:22px;
+}
+.driver-info { flex:1; }
+.driver-name { color:#fff; font-size:15px; font-weight:700; }
+.driver-rating { color:rgba(255,255,255,0.5); font-size:12px; margin-top:2px; }
+.driver-actions { display:flex; gap:10px; }
+.driver-btn {
+  width:42px; height:42px; border-radius:50%; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; font-size:18px;
+}
+.driver-call { background:#ff4d00; }
+.driver-msg { background:rgba(255,255,255,0.1); }
+
+/* ===== PROFILE SCREEN ===== */
+.profile-screen { background:#fafafa; }
+.profile-header {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  padding:50px 24px 40px; text-align:center; border-radius:0 0 30px 30px;
+}
+.profile-avatar {
+  width:80px; height:80px; border-radius:50%; margin:0 auto;
+  background: linear-gradient(135deg,#ff4d00,#ff7a33);
+  display:flex; align-items:center; justify-content:center; font-size:36px;
+  border:4px solid rgba(255,255,255,0.2);
+}
+.profile-name { color:#fff; font-size:20px; font-weight:800; margin-top:12px; }
+.profile-email { color:rgba(255,255,255,0.5); font-size:13px; margin-top:4px; }
+.profile-stats { display:flex; justify-content:center; gap:30px; margin-top:20px; }
+.stat-item { text-align:center; }
+.stat-num { color:#ff4d00; font-size:22px; font-weight:800; }
+.stat-label { color:rgba(255,255,255,0.5); font-size:11px; margin-top:2px; }
+
+.profile-menu { padding:24px; }
+.menu-group { background:#fff; border-radius:20px; overflow:hidden; margin-bottom:16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+.menu-item {
+  display:flex; align-items:center; gap:14px; padding:16px 20px;
+  border-bottom:1px solid #f5f5f5; cursor:pointer; transition:background 0.2s;
+}
+.menu-item:last-child { border-bottom:none; }
+.menu-item:hover { background:#fafafa; }
+.menu-icon {
+  width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  font-size:18px;
+}
+.menu-icon.orange { background:#fff3e0; }
+.menu-icon.green { background:#e8f5e9; }
+.menu-icon.blue { background:#e3f2fd; }
+.menu-icon.purple { background:#f3e5f5; }
+.menu-icon.red { background:#fce4ec; }
+.menu-text { flex:1; font-size:14px; font-weight:600; color:#333; }
+.menu-arrow { color:#ccc; font-size:14px; }
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  position:absolute; bottom:0; left:0; right:0; height:80px;
+  background:rgba(255,255,255,0.95); backdrop-filter:blur(20px);
+  display:flex; justify-content:space-around; align-items:center;
+  padding-bottom:16px; border-top:1px solid #f0f0f0; z-index:50;
+}
+.nav-item {
+  display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;
+  transition: transform 0.2s;
+}
+.nav-item:hover { transform:translateY(-2px); }
+.nav-item.active .nav-icon { color:#ff4d00; }
+.nav-item.active .nav-label { color:#ff4d00; }
+.nav-icon { font-size:22px; color:#bbb; }
+.nav-label { font-size:10px; font-weight:600; color:#bbb; }
+.nav-dot { width:5px; height:5px; background:#ff4d00; border-radius:50%; margin-top:-2px; }
+
+/* Dark bottom nav for track screen */
+.bottom-nav.dark {
+  background:rgba(26,26,46,0.95); border-top:1px solid rgba(255,255,255,0.08);
+}
+.bottom-nav.dark .nav-icon { color:rgba(255,255,255,0.3); }
+.bottom-nav.dark .nav-label { color:rgba(255,255,255,0.3); }
+.bottom-nav.dark .nav-item.active .nav-icon { color:#ff4d00; }
+.bottom-nav.dark .nav-item.active .nav-label { color:#ff4d00; }
+
+/* Whitelabel */
+.whitelabel {
+  text-align:center; padding:14px; font-size:10px; color:#bbb; letter-spacing:0.5px;
+}
+.whitelabel.dark { color:rgba(255,255,255,0.2); }
+
+@keyframes pulse { 0%{transform:scale(1);opacity:1} 100%{transform:scale(2);opacity:0} }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="notch"></div>
+
+  <!-- HOME SCREEN -->
+  <div class="screen home-screen active" id="screen-home">
+    <div class="home-header">
+      <div class="home-greeting">Good evening</div>
+      <div class="home-title">What would you <span>like to eat?</span></div>
+    </div>
+
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <span>Search for food, restaurants...</span>
+    </div>
+
+    <div class="promo-banner">
+      <div class="promo-tag">LIMITED OFFER</div>
+      <div class="promo-text">Get 30% OFF</div>
+      <div class="promo-sub">On your first 3 orders. Use code WELCOME30</div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">Categories</div>
+      <div class="section-link">See all</div>
+    </div>
+
+    <div class="categories">
+      <div class="cat-item cat-1"><div class="cat-icon">🍕</div><span>Pizza</span></div>
+      <div class="cat-item cat-2"><div class="cat-icon">🍔</div><span>Burgers</span></div>
+      <div class="cat-item cat-3"><div class="cat-icon">🍣</div><span>Sushi</span></div>
+      <div class="cat-item cat-4"><div class="cat-icon">🥗</div><span>Salads</span></div>
+      <div class="cat-item cat-5"><div class="cat-icon">🍰</div><span>Desserts</span></div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">Popular Near You</div>
+      <div class="section-link">See all</div>
+    </div>
+
+    <div class="food-cards">
+      <div class="food-card" onclick="showScreen('screen-order')">
+        <div class="food-img-wrap">
+          <div class="food-img-bg img-pizza">🍕</div>
+          <div class="food-badge">BESTSELLER</div>
+          <div class="food-fav">♡</div>
+        </div>
+        <div class="food-info">
+          <div class="food-name">Margherita Supreme</div>
+          <div class="food-desc">Classic tomato, mozzarella, fresh basil</div>
+          <div class="food-bottom">
+            <div class="food-price">$12.99</div>
+            <div class="food-meta">
+              <div class="food-rating">&#9733; 4.8</div>
+              <div class="food-time">20-30 min</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="food-card" onclick="showScreen('screen-order')">
+        <div class="food-img-wrap">
+          <div class="food-img-bg img-burger">🍔</div>
+          <div class="food-badge">NEW</div>
+          <div class="food-fav">♡</div>
+        </div>
+        <div class="food-info">
+          <div class="food-name">Smoky BBQ Burger</div>
+          <div class="food-desc">Angus beef, smoked cheddar, crispy onions</div>
+          <div class="food-bottom">
+            <div class="food-price">$14.50</div>
+            <div class="food-meta">
+              <div class="food-rating">&#9733; 4.6</div>
+              <div class="food-time">15-25 min</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="food-card" onclick="showScreen('screen-order')">
+        <div class="food-img-wrap">
+          <div class="food-img-bg img-sushi">🍣</div>
+          <div class="food-fav">&#9829;</div>
+        </div>
+        <div class="food-info">
+          <div class="food-name">Dragon Roll Combo</div>
+          <div class="food-desc">Shrimp tempura, avocado, spicy mayo</div>
+          <div class="food-bottom">
+            <div class="food-price">$18.99</div>
+            <div class="food-meta">
+              <div class="food-rating">&#9733; 4.9</div>
+              <div class="food-time">25-35 min</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="whitelabel">whitelabel@alfaasolutions</div>
+    <div style="height:80px;"></div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="showScreen('screen-home')">
+        <div class="nav-icon">&#9750;</div>
+        <div class="nav-label">Home</div>
+        <div class="nav-dot"></div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-order')">
+        <div class="nav-icon">&#128722;</div>
+        <div class="nav-label">Cart</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-track')">
+        <div class="nav-icon">&#128205;</div>
+        <div class="nav-label">Track</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-profile')">
+        <div class="nav-icon">&#128100;</div>
+        <div class="nav-label">Profile</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDER / CART SCREEN -->
+  <div class="screen order-screen" id="screen-order">
+    <div class="order-header">
+      <div class="order-back" onclick="showScreen('screen-home')">&#8592; Back</div>
+      <div class="order-title-text">Your Cart</div>
+      <div class="order-subtitle">3 items from Italian Kitchen</div>
+    </div>
+
+    <div class="order-card">
+      <div class="order-item">
+        <div class="order-item-img img-pizza">🍕</div>
+        <div class="order-item-info">
+          <div class="order-item-name">Margherita Supreme</div>
+          <div class="order-item-extra">Extra cheese, thin crust</div>
+          <div class="order-item-bottom">
+            <div class="order-item-price">$12.99</div>
+            <div class="qty-control">
+              <button class="qty-btn qty-minus">-</button>
+              <span class="qty-num">1</span>
+              <button class="qty-btn qty-plus">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="order-item">
+        <div class="order-item-img img-pasta">🍝</div>
+        <div class="order-item-info">
+          <div class="order-item-name">Creamy Carbonara</div>
+          <div class="order-item-extra">Regular portion</div>
+          <div class="order-item-bottom">
+            <div class="order-item-price">$11.50</div>
+            <div class="qty-control">
+              <button class="qty-btn qty-minus">-</button>
+              <span class="qty-num">1</span>
+              <button class="qty-btn qty-plus">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="order-item">
+        <div class="order-item-img" style="background:linear-gradient(135deg,#b3e5fc,#81d4fa);">🥤</div>
+        <div class="order-item-info">
+          <div class="order-item-name">Fresh Lemonade</div>
+          <div class="order-item-extra">Large, less ice</div>
+          <div class="order-item-bottom">
+            <div class="order-item-price">$4.50</div>
+            <div class="qty-control">
+              <button class="qty-btn qty-minus">-</button>
+              <span class="qty-num">2</span>
+              <button class="qty-btn qty-plus">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="order-summary">
+      <div class="summary-row"><span>Subtotal</span><span>$33.49</span></div>
+      <div class="summary-row"><span>Delivery fee</span><span>$3.99</span></div>
+      <div class="summary-row"><span>Promo (WELCOME30)</span><span style="color:#22c55e;">-$10.05</span></div>
+      <div class="summary-row total"><span>Total</span><span>$27.43</span></div>
+    </div>
+
+    <button class="order-btn" onclick="showScreen('screen-track')">Place Order - $27.43</button>
+
+    <div class="whitelabel">whitelabel@alfaasolutions</div>
+    <div style="height:80px;"></div>
+
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('screen-home')">
+        <div class="nav-icon">&#9750;</div>
+        <div class="nav-label">Home</div>
+      </div>
+      <div class="nav-item active" onclick="showScreen('screen-order')">
+        <div class="nav-icon">&#128722;</div>
+        <div class="nav-label">Cart</div>
+        <div class="nav-dot"></div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-track')">
+        <div class="nav-icon">&#128205;</div>
+        <div class="nav-label">Track</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-profile')">
+        <div class="nav-icon">&#128100;</div>
+        <div class="nav-label">Profile</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRACKING SCREEN -->
+  <div class="screen track-screen" id="screen-track">
+    <div class="track-header">
+      <div class="track-back" onclick="showScreen('screen-home')">&#8592; Back</div>
+      <div class="track-title-text">Live Tracking</div>
+      <div class="track-order-id">Order #FD-20487</div>
+    </div>
+
+    <div class="track-map">
+      <div class="map-line"></div>
+      <div class="map-pin-a">&#127869;</div>
+      <div class="map-dot"></div>
+      <div class="map-pin-b">&#127968;</div>
+    </div>
+
+    <div class="track-status">
+      <div class="track-step done">
+        <div class="step-dot">&#10003;</div>
+        <div class="step-info">
+          <div class="step-title">Order Confirmed</div>
+          <div class="step-time">7:15 PM</div>
+        </div>
+      </div>
+      <div class="track-step done">
+        <div class="step-dot">&#10003;</div>
+        <div class="step-info">
+          <div class="step-title">Preparing Your Food</div>
+          <div class="step-time">7:18 PM</div>
+        </div>
+      </div>
+      <div class="track-step current">
+        <div class="step-dot">&#9679;</div>
+        <div class="step-info">
+          <div class="step-title">On The Way</div>
+          <div class="step-time">Arriving in 12 min</div>
+        </div>
+      </div>
+      <div class="track-step">
+        <div class="step-dot">&#9679;</div>
+        <div class="step-info">
+          <div class="step-title">Delivered</div>
+          <div class="step-time">Est. 7:45 PM</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="track-driver">
+      <div class="driver-avatar">&#128666;</div>
+      <div class="driver-info">
+        <div class="driver-name">Marcus Johnson</div>
+        <div class="driver-rating">&#9733; 4.9 - 1,240 deliveries</div>
+      </div>
+      <div class="driver-actions">
+        <button class="driver-btn driver-msg">&#128172;</button>
+        <button class="driver-btn driver-call">&#128222;</button>
+      </div>
+    </div>
+
+    <div class="whitelabel dark">whitelabel@alfaasolutions</div>
+    <div style="height:80px;"></div>
+
+    <div class="bottom-nav dark">
+      <div class="nav-item" onclick="showScreen('screen-home')">
+        <div class="nav-icon">&#9750;</div>
+        <div class="nav-label">Home</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-order')">
+        <div class="nav-icon">&#128722;</div>
+        <div class="nav-label">Cart</div>
+      </div>
+      <div class="nav-item active" onclick="showScreen('screen-track')">
+        <div class="nav-icon">&#128205;</div>
+        <div class="nav-label">Track</div>
+        <div class="nav-dot"></div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-profile')">
+        <div class="nav-icon">&#128100;</div>
+        <div class="nav-label">Profile</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE SCREEN -->
+  <div class="screen profile-screen" id="screen-profile">
+    <div class="profile-header">
+      <div class="profile-avatar">&#128100;</div>
+      <div class="profile-name">Sarah Mitchell</div>
+      <div class="profile-email">sarah.m@email.com</div>
+      <div class="profile-stats">
+        <div class="stat-item"><div class="stat-num">47</div><div class="stat-label">Orders</div></div>
+        <div class="stat-item"><div class="stat-num">12</div><div class="stat-label">Favorites</div></div>
+        <div class="stat-item"><div class="stat-num">$85</div><div class="stat-label">Saved</div></div>
+      </div>
+    </div>
+
+    <div class="profile-menu">
+      <div class="menu-group">
+        <div class="menu-item">
+          <div class="menu-icon orange">&#128230;</div>
+          <div class="menu-text">My Orders</div>
+          <div class="menu-arrow">&#8250;</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon green">&#128205;</div>
+          <div class="menu-text">Saved Addresses</div>
+          <div class="menu-arrow">&#8250;</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon blue">&#128179;</div>
+          <div class="menu-text">Payment Methods</div>
+          <div class="menu-arrow">&#8250;</div>
+        </div>
+      </div>
+
+      <div class="menu-group">
+        <div class="menu-item">
+          <div class="menu-icon purple">&#127873;</div>
+          <div class="menu-text">Promo Codes</div>
+          <div class="menu-arrow">&#8250;</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon red">&#10084;</div>
+          <div class="menu-text">Favorite Restaurants</div>
+          <div class="menu-arrow">&#8250;</div>
+        </div>
+      </div>
+
+      <div class="menu-group">
+        <div class="menu-item">
+          <div class="menu-icon blue">&#9881;</div>
+          <div class="menu-text">Settings</div>
+          <div class="menu-arrow">&#8250;</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon orange">&#128172;</div>
+          <div class="menu-text">Help & Support</div>
+          <div class="menu-arrow">&#8250;</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="whitelabel">whitelabel@alfaasolutions</div>
+    <div style="height:80px;"></div>
+
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('screen-home')">
+        <div class="nav-icon">&#9750;</div>
+        <div class="nav-label">Home</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-order')">
+        <div class="nav-icon">&#128722;</div>
+        <div class="nav-label">Cart</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-track')">
+        <div class="nav-icon">&#128205;</div>
+        <div class="nav-label">Track</div>
+      </div>
+      <div class="nav-item active" onclick="showScreen('screen-profile')">
+        <div class="nav-icon">&#128100;</div>
+        <div class="nav-label">Profile</div>
+        <div class="nav-dot"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById(id).scrollTop = 0;
+}
+</script>
+</body>
+</html>

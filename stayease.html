@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>StayEase - Hotel Booking</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=DM+Serif+Display&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:#0a0a0a; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+
+.phone-frame {
+  width:375px; height:812px; background:#fff; border-radius:44px; overflow:hidden;
+  position:relative; box-shadow: 0 50px 100px rgba(0,0,0,0.5);
+  border: 8px solid #1a1a1a;
+}
+.notch {
+  position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:150px; height:34px; background:#1a1a1a; border-radius:0 0 20px 20px; z-index:100;
+}
+.screen { width:100%; height:100%; overflow-y:auto; overflow-x:hidden; position:relative; display:none; }
+.screen.active { display:block; }
+.screen::-webkit-scrollbar { display:none; }
+
+:root {
+  --teal: #0d9488;
+  --teal-dark: #0f766e;
+  --teal-light: #ccfbf1;
+  --navy: #0f172a;
+  --warm: #f59e0b;
+}
+
+/* ===== HOME / EXPLORE SCREEN ===== */
+.explore-screen { background:#fafafa; }
+.explore-header { padding:50px 24px 0; display:flex; justify-content:space-between; align-items:center; }
+.explore-logo { font-family:'DM Serif Display',serif; font-size:26px; color:var(--navy); }
+.explore-logo span { color:var(--teal); }
+.explore-avatar { width:40px; height:40px; border-radius:50%; background: linear-gradient(135deg,var(--teal),var(--teal-dark)); display:flex; align-items:center; justify-content:center; font-size:18px; }
+
+.explore-hero {
+  margin:20px 24px; background: linear-gradient(135deg, var(--navy) 0%, #1e293b 100%);
+  border-radius:24px; padding:28px; position:relative; overflow:hidden;
+}
+.explore-hero::after {
+  content:''; position:absolute; bottom:-30px; right:-30px; width:140px; height:140px;
+  background: radial-gradient(circle, rgba(13,148,136,0.4), transparent); border-radius:50%;
+}
+.explore-hero-title { font-family:'DM Serif Display',serif; font-size:26px; color:#fff; line-height:1.3; }
+.explore-hero-title span { color:var(--warm); }
+.explore-hero-sub { color:rgba(255,255,255,0.6); font-size:13px; margin-top:8px; }
+
+.search-box {
+  margin:20px 24px; background:#fff; border-radius:20px; padding:20px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.06);
+}
+.search-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #f0f0f0; }
+.search-row:last-child { border-bottom:none; }
+.search-icon { font-size:20px; width:24px; text-align:center; }
+.search-input { flex:1; }
+.search-label { font-size:11px; font-weight:600; color:#999; text-transform:uppercase; letter-spacing:0.5px; }
+.search-value { font-size:14px; font-weight:600; color:var(--navy); margin-top:2px; }
+.search-btn {
+  margin-top:16px; background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+  color:#fff; border:none; border-radius:14px; padding:14px; width:100%;
+  font-size:15px; font-weight:700; cursor:pointer;
+  box-shadow: 0 6px 20px rgba(13,148,136,0.3);
+}
+
+.section-header { display:flex; justify-content:space-between; align-items:center; padding:24px 24px 12px; }
+.section-title { font-size:18px; font-weight:700; color:var(--navy); }
+.section-link { font-size:13px; color:var(--teal); font-weight:600; }
+
+.dest-cards { display:flex; gap:14px; padding:0 24px; overflow-x:auto; }
+.dest-cards::-webkit-scrollbar { display:none; }
+.dest-card {
+  min-width:140px; border-radius:20px; overflow:hidden; position:relative; cursor:pointer;
+  transition: transform 0.2s;
+}
+.dest-card:hover { transform:scale(1.03); }
+.dest-img {
+  width:140px; height:180px; display:flex; align-items:flex-end; padding:14px;
+  font-size:50px; position:relative;
+}
+.dest-overlay {
+  position:absolute; bottom:0; left:0; right:0; padding:14px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+}
+.dest-name { color:#fff; font-size:14px; font-weight:700; }
+.dest-count { color:rgba(255,255,255,0.7); font-size:11px; }
+.img-d1 { background: linear-gradient(135deg, #fde68a, #f59e0b); }
+.img-d2 { background: linear-gradient(135deg, #a7f3d0, #34d399); }
+.img-d3 { background: linear-gradient(135deg, #bae6fd, #38bdf8); }
+.img-d4 { background: linear-gradient(135deg, #fecaca, #f87171); }
+
+.hotel-list { padding:0 24px 20px; display:flex; flex-direction:column; gap:16px; }
+.hotel-card {
+  background:#fff; border-radius:20px; overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,0.05); cursor:pointer; transition: transform 0.2s;
+}
+.hotel-card:hover { transform:translateY(-2px); }
+.hotel-img-wrap { position:relative; }
+.hotel-img-bg {
+  width:100%; height:160px; display:flex; align-items:center; justify-content:center; font-size:50px;
+}
+.hotel-badge {
+  position:absolute; top:12px; left:12px; background:var(--warm); color:#fff;
+  font-size:11px; font-weight:700; padding:4px 10px; border-radius:8px;
+}
+.hotel-save {
+  position:absolute; top:12px; right:12px; width:34px; height:34px; background:rgba(255,255,255,0.9);
+  border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px;
+}
+.hotel-info { padding:16px; }
+.hotel-name { font-size:16px; font-weight:700; color:var(--navy); }
+.hotel-loc { font-size:12px; color:#888; margin-top:3px; display:flex; align-items:center; gap:4px; }
+.hotel-bottom { display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
+.hotel-price { font-size:18px; font-weight:800; color:var(--teal); }
+.hotel-price span { font-size:12px; font-weight:500; color:#888; }
+.hotel-rating { display:flex; align-items:center; gap:4px; }
+.hotel-stars { color:var(--warm); font-size:12px; letter-spacing:1px; }
+.hotel-score { font-size:12px; font-weight:600; color:#333; }
+
+.img-h1 { background: linear-gradient(135deg, #dbeafe, #93c5fd); }
+.img-h2 { background: linear-gradient(135deg, #fef3c7, #fcd34d); }
+.img-h3 { background: linear-gradient(135deg, #d1fae5, #6ee7b7); }
+
+/* ===== HOTEL DETAIL SCREEN ===== */
+.detail-screen { background:#fafafa; }
+.detail-hero {
+  width:100%; height:280px; display:flex; align-items:center; justify-content:center;
+  font-size:80px; position:relative;
+  background: linear-gradient(135deg, #dbeafe, #93c5fd);
+}
+.detail-back {
+  position:absolute; top:50px; left:20px; width:36px; height:36px; background:rgba(255,255,255,0.9);
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:16px; z-index:10;
+}
+.detail-save {
+  position:absolute; top:50px; right:20px; width:36px; height:36px; background:rgba(255,255,255,0.9);
+  border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px;
+}
+.detail-dots {
+  position:absolute; bottom:16px; display:flex; gap:6px;
+}
+.detail-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.5); }
+.detail-dot.active { background:#fff; width:24px; border-radius:4px; }
+
+.detail-body { padding:24px; margin-top:-20px; background:#fafafa; border-radius:24px 24px 0 0; position:relative; }
+.detail-name { font-family:'DM Serif Display',serif; font-size:24px; color:var(--navy); }
+.detail-loc { font-size:13px; color:#888; margin-top:4px; display:flex; align-items:center; gap:4px; }
+.detail-rating-row { display:flex; align-items:center; gap:12px; margin-top:12px; }
+.detail-rating-badge { background:var(--teal); color:#fff; padding:4px 10px; border-radius:8px; font-size:13px; font-weight:700; }
+.detail-rating-text { font-size:13px; color:#666; }
+
+.detail-features { display:flex; gap:12px; margin-top:20px; flex-wrap:wrap; }
+.feature-chip {
+  display:flex; align-items:center; gap:6px; padding:8px 14px; background:#fff;
+  border-radius:12px; font-size:12px; font-weight:600; color:#555;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.feature-icon { font-size:16px; }
+
+.detail-section { margin-top:24px; }
+.detail-section-title { font-size:16px; font-weight:700; color:var(--navy); margin-bottom:10px; }
+.detail-desc { font-size:13px; color:#666; line-height:1.7; }
+
+.room-cards { display:flex; flex-direction:column; gap:12px; }
+.room-card {
+  background:#fff; border-radius:16px; padding:16px; display:flex; gap:14px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.04);
+}
+.room-img {
+  width:80px; height:80px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  font-size:36px; flex-shrink:0;
+}
+.room-info { flex:1; }
+.room-name { font-size:14px; font-weight:700; color:var(--navy); }
+.room-amenities { font-size:12px; color:#888; margin-top:3px; }
+.room-bottom { display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+.room-price { font-size:16px; font-weight:800; color:var(--teal); }
+.room-price span { font-size:11px; font-weight:500; color:#888; }
+.room-select {
+  padding:6px 16px; border-radius:8px; font-size:12px; font-weight:700;
+  border:2px solid var(--teal); background:transparent; color:var(--teal);
+  cursor:pointer; transition:all 0.2s;
+}
+.room-select:hover { background:var(--teal); color:#fff; }
+
+.detail-book-bar {
+  margin:24px 0 20px; display:flex; align-items:center; justify-content:space-between;
+  background:var(--navy); border-radius:18px; padding:16px 20px;
+}
+.book-price-info {}
+.book-from { font-size:11px; color:rgba(255,255,255,0.5); }
+.book-amount { font-size:22px; font-weight:800; color:#fff; }
+.book-amount span { font-size:12px; font-weight:500; color:rgba(255,255,255,0.5); }
+.book-now-btn {
+  background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+  color:#fff; border:none; border-radius:12px; padding:12px 28px;
+  font-size:14px; font-weight:700; cursor:pointer;
+  box-shadow: 0 4px 15px rgba(13,148,136,0.4);
+}
+
+/* ===== BOOKINGS SCREEN ===== */
+.bookings-screen { background:#fafafa; }
+.bookings-header { padding:50px 24px 20px; }
+.bookings-back { font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; color:#333; }
+.bookings-title { font-family:'DM Serif Display',serif; font-size:24px; color:var(--navy); margin-top:12px; }
+
+.booking-tabs { display:flex; gap:0; margin:0 24px; background:#f0f0f0; border-radius:14px; padding:4px; }
+.booking-tab {
+  flex:1; text-align:center; padding:10px; font-size:13px; font-weight:600;
+  border-radius:12px; cursor:pointer; color:#888; transition:all 0.2s;
+}
+.booking-tab.active { background:#fff; color:var(--navy); box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+
+.bookings-list { padding:20px 24px; display:flex; flex-direction:column; gap:14px; }
+.booking-item {
+  background:#fff; border-radius:20px; padding:18px; box-shadow:0 4px 16px rgba(0,0,0,0.05);
+}
+.bi-top { display:flex; gap:14px; }
+.bi-img {
+  width:70px; height:70px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:32px; flex-shrink:0;
+}
+.bi-info { flex:1; }
+.bi-name { font-size:15px; font-weight:700; color:var(--navy); }
+.bi-loc { font-size:12px; color:#888; margin-top:2px; }
+.bi-dates { font-size:12px; color:var(--teal); font-weight:600; margin-top:4px; }
+.bi-bottom { display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top:1px solid #f0f0f0; }
+.bi-status { padding:4px 12px; border-radius:8px; font-size:11px; font-weight:700; }
+.bi-confirmed { background:#ccfbf1; color:var(--teal-dark); }
+.bi-upcoming { background:#fff7ed; color:#ea580c; }
+.bi-completed { background:#f5f5f5; color:#888; }
+.bi-price { font-size:16px; font-weight:800; color:var(--navy); }
+
+/* ===== PROFILE SCREEN ===== */
+.stay-profile { background:#fafafa; }
+.sp-header {
+  background: linear-gradient(135deg, var(--navy), #1e293b);
+  padding:50px 24px 40px; text-align:center; border-radius:0 0 30px 30px;
+  position:relative; overflow:hidden;
+}
+.sp-header::after {
+  content:''; position:absolute; top:-60px; right:-60px; width:200px; height:200px;
+  background: radial-gradient(circle, rgba(13,148,136,0.3), transparent); border-radius:50%;
+}
+.sp-avatar {
+  width:80px; height:80px; border-radius:50%; margin:0 auto;
+  background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+  display:flex; align-items:center; justify-content:center; font-size:36px;
+  border:4px solid rgba(255,255,255,0.2);
+}
+.sp-name { color:#fff; font-size:20px; font-weight:800; margin-top:12px; font-family:'DM Serif Display',serif; }
+.sp-tier { color:var(--warm); font-size:12px; font-weight:600; margin-top:4px; letter-spacing:1px; }
+.sp-stats { display:flex; justify-content:center; gap:30px; margin-top:20px; }
+.sp-stat { text-align:center; }
+.sp-stat-num { color:var(--teal-light); font-size:22px; font-weight:800; }
+.sp-stat-label { color:rgba(255,255,255,0.5); font-size:11px; margin-top:2px; }
+
+.sp-menu { padding:24px; }
+.sp-group { background:#fff; border-radius:20px; overflow:hidden; margin-bottom:16px; box-shadow:0 2px 10px rgba(0,0,0,0.04); }
+.sp-item { display:flex; align-items:center; gap:14px; padding:16px 20px; border-bottom:1px solid #f5f5f5; cursor:pointer; }
+.sp-item:last-child { border-bottom:none; }
+.sp-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.sp-icon.teal { background:var(--teal-light); }
+.sp-icon.amber { background:#fef3c7; }
+.sp-icon.blue { background:#dbeafe; }
+.sp-icon.pink { background:#fce7f3; }
+.sp-text { flex:1; font-size:14px; font-weight:600; color:#333; }
+.sp-arrow { color:#ccc; font-size:14px; }
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  position:absolute; bottom:0; left:0; right:0; height:80px;
+  background:rgba(255,255,255,0.95); backdrop-filter:blur(20px);
+  display:flex; justify-content:space-around; align-items:center;
+  padding-bottom:16px; border-top:1px solid #f0f0f0; z-index:50;
+}
+.nav-item { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; }
+.nav-item.active .nav-icon { color:var(--teal); }
+.nav-item.active .nav-label { color:var(--teal); }
+.nav-icon { font-size:22px; color:#bbb; }
+.nav-label { font-size:10px; font-weight:600; color:#bbb; }
+.nav-dot { width:5px; height:5px; background:var(--teal); border-radius:50%; margin-top:-2px; }
+
+.whitelabel { text-align:center; padding:14px; font-size:10px; color:#bbb; letter-spacing:0.5px; }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="notch"></div>
+
+  <!-- EXPLORE SCREEN -->
+  <div class="screen explore-screen active" id="screen-explore">
+    <div class="explore-header">
+      <div class="explore-logo">Stay<span>Ease</span></div>
+      <div class="explore-avatar">&#128100;</div>
+    </div>
+
+    <div class="explore-hero">
+      <div class="explore-hero-title">Find your <span>perfect stay.</span></div>
+      <div class="explore-hero-sub">500+ hotels and resorts worldwide</div>
+    </div>
+
+    <div class="search-box">
+      <div class="search-row">
+        <div class="search-icon">&#128205;</div>
+        <div class="search-input">
+          <div class="search-label">Destination</div>
+          <div class="search-value">Bali, Indonesia</div>
+        </div>
+      </div>
+      <div class="search-row">
+        <div class="search-icon">&#128197;</div>
+        <div class="search-input">
+          <div class="search-label">Check-in / Check-out</div>
+          <div class="search-value">Jul 20 - Jul 25, 2025</div>
+        </div>
+      </div>
+      <div class="search-row">
+        <div class="search-icon">&#128101;</div>
+        <div class="search-input">
+          <div class="search-label">Guests & Rooms</div>
+          <div class="search-value">2 Adults, 1 Room</div>
+        </div>
+      </div>
+      <button class="search-btn" onclick="showScreen('screen-detail')">Search Hotels</button>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">Trending Destinations</div>
+      <div class="section-link">See all</div>
+    </div>
+    <div class="dest-cards">
+      <div class="dest-card">
+        <div class="dest-img img-d1">&#127965;
+          <div class="dest-overlay"><div class="dest-name">Bali</div><div class="dest-count">234 hotels</div></div>
+        </div>
+      </div>
+      <div class="dest-card">
+        <div class="dest-img img-d2">&#127796;
+          <div class="dest-overlay"><div class="dest-name">Maldives</div><div class="dest-count">89 resorts</div></div>
+        </div>
+      </div>
+      <div class="dest-card">
+        <div class="dest-img img-d3">&#127751;
+          <div class="dest-overlay"><div class="dest-name">Santorini</div><div class="dest-count">156 stays</div></div>
+        </div>
+      </div>
+      <div class="dest-card">
+        <div class="dest-img img-d4">&#127974;
+          <div class="dest-overlay"><div class="dest-name">Tokyo</div><div class="dest-count">412 hotels</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">Recommended For You</div>
+      <div class="section-link">See all</div>
+    </div>
+    <div class="hotel-list">
+      <div class="hotel-card" onclick="showScreen('screen-detail')">
+        <div class="hotel-img-wrap">
+          <div class="hotel-img-bg img-h1">&#127962;</div>
+          <div class="hotel-badge">TOP PICK</div>
+          <div class="hotel-save">&#9825;</div>
+        </div>
+        <div class="hotel-info">
+          <div class="hotel-name">Azure Cliff Resort & Spa</div>
+          <div class="hotel-loc">&#128205; Uluwatu, Bali</div>
+          <div class="hotel-bottom">
+            <div class="hotel-price">$185 <span>/night</span></div>
+            <div class="hotel-rating">
+              <div class="hotel-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <div class="hotel-score">4.9</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hotel-card" onclick="showScreen('screen-detail')">
+        <div class="hotel-img-wrap">
+          <div class="hotel-img-bg img-h2">&#127958;</div>
+          <div class="hotel-save">&#9825;</div>
+        </div>
+        <div class="hotel-info">
+          <div class="hotel-name">Golden Sands Beach Hotel</div>
+          <div class="hotel-loc">&#128205; Seminyak, Bali</div>
+          <div class="hotel-bottom">
+            <div class="hotel-price">$120 <span>/night</span></div>
+            <div class="hotel-rating">
+              <div class="hotel-stars">&#9733;&#9733;&#9733;&#9733;</div>
+              <div class="hotel-score">4.6</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hotel-card" onclick="showScreen('screen-detail')">
+        <div class="hotel-img-wrap">
+          <div class="hotel-img-bg img-h3">&#127795;</div>
+          <div class="hotel-badge">ECO</div>
+          <div class="hotel-save">&#9829;</div>
+        </div>
+        <div class="hotel-info">
+          <div class="hotel-name">Jungle Retreat Ubud</div>
+          <div class="hotel-loc">&#128205; Ubud, Bali</div>
+          <div class="hotel-bottom">
+            <div class="hotel-price">$95 <span>/night</span></div>
+            <div class="hotel-rating">
+              <div class="hotel-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <div class="hotel-score">4.8</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="whitelabel">whitelabel@alfaasolutions</div>
+    <div style="height:80px;"></div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="showScreen('screen-explore')">
+        <div class="nav-icon">&#9750;</div><div class="nav-label">Explore</div><div class="nav-dot"></div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-detail')">
+        <div class="nav-icon">&#128269;</div><div class="nav-label">Search</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-bookings')">
+        <div class="nav-icon">&#128203;</div><div class="nav-label">Trips</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-profile')">
+        <div class="nav-icon">&#128100;</div><div class="nav-label">Profile</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOTEL DETAIL SCREEN -->
+  <div class="screen detail-screen" id="screen-detail">
+    <div class="detail-hero">
+      <div class="detail-back" onclick="showScreen('screen-explore')">&#8592;</div>
+      <div class="detail-save">&#9825;</div>
+      &#127962;
+      <div class="detail-dots">
+        <div class="detail-dot active"></div>
+        <div class="detail-dot"></div>
+        <div class="detail-dot"></div>
+        <div class="detail-dot"></div>
+      </div>
+    </div>
+
+    <div class="detail-body">
+      <div class="detail-name">Azure Cliff Resort & Spa</div>
+      <div class="detail-loc">&#128205; Uluwatu, Bali, Indonesia</div>
+      <div class="detail-rating-row">
+        <div class="detail-rating-badge">4.9</div>
+        <div class="detail-rating-text">Exceptional - 1,247 reviews</div>
+      </div>
+
+      <div class="detail-features">
+        <div class="feature-chip"><span class="feature-icon">&#127946;</span> Pool</div>
+        <div class="feature-chip"><span class="feature-icon">&#128692;</span> Gym</div>
+        <div class="feature-chip"><span class="feature-icon">&#128246;</span> WiFi</div>
+        <div class="feature-chip"><span class="feature-icon">&#127860;</span> Restaurant</div>
+        <div class="feature-chip"><span class="feature-icon">&#9748;</span> Spa</div>
+        <div class="feature-chip"><span class="feature-icon">&#127754;</span> Beach</div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">About</div>
+        <div class="detail-desc">Perched atop dramatic cliffs overlooking the Indian Ocean, Azure Cliff Resort offers a luxury experience blending Balinese architecture with modern comfort. Each villa features a private infinity pool and breathtaking sunset views.</div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Available Rooms</div>
+        <div class="room-cards">
+          <div class="room-card">
+            <div class="room-img" style="background:linear-gradient(135deg,#dbeafe,#93c5fd);">&#128716;</div>
+            <div class="room-info">
+              <div class="room-name">Deluxe Ocean View</div>
+              <div class="room-amenities">King bed, balcony, minibar</div>
+              <div class="room-bottom">
+                <div class="room-price">$185 <span>/night</span></div>
+                <button class="room-select">Select</button>
+              </div>
+            </div>
+          </div>
+          <div class="room-card">
+            <div class="room-img" style="background:linear-gradient(135deg,#fef3c7,#fcd34d);">&#127965;</div>
+            <div class="room-info">
+              <div class="room-name">Pool Villa Suite</div>
+              <div class="room-amenities">Private pool, outdoor shower</div>
+              <div class="room-bottom">
+                <div class="room-price">$320 <span>/night</span></div>
+                <button class="room-select">Select</button>
+              </div>
+            </div>
+          </div>
+          <div class="room-card">
+            <div class="room-img" style="background:linear-gradient(135deg,#d1fae5,#6ee7b7);">&#127796;</div>
+            <div class="room-info">
+              <div class="room-name">Royal Cliff Penthouse</div>
+              <div class="room-amenities">2 bedrooms, butler service</div>
+              <div class="room-bottom">
+                <div class="room-price">$550 <span>/night</span></div>
+                <button class="room-select">Select</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-book-bar">
+        <div class="book-price-info">
+          <div class="book-from">From</div>
+          <div class="book-amount">$185 <span>/night</span></div>
+        </div>
+        <button class="book-now-btn" onclick="showScreen('screen-bookings')">Book Now</button>
+      </div>
+
+      <div class="whitelabel">whitelabel@alfaasolutions</div>
+    </div>
+    <div style="height:80px;"></div>
+
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('screen-explore')">
+        <div class="nav-icon">&#9750;</div><div class="nav-label">Explore</div>
+      </div>
+      <div class="nav-item active" onclick="showScreen('screen-detail')">
+        <div class="nav-icon">&#128269;</div><div class="nav-label">Search</div><div class="nav-dot"></div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-bookings')">
+        <div class="nav-icon">&#128203;</div><div class="nav-label">Trips</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-profile')">
+        <div class="nav-icon">&#128100;</div><div class="nav-label">Profile</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOKINGS SCREEN -->
+  <div class="screen bookings-screen" id="screen-bookings">
+    <div class="bookings-header">
+      <div class="bookings-back" onclick="showScreen('screen-explore')">&#8592; Back</div>
+      <div class="bookings-title">My Trips</div>
+    </div>
+
+    <div class="booking-tabs">
+      <div class="booking-tab active">Upcoming</div>
+      <div class="booking-tab">Completed</div>
+      <div class="booking-tab">Cancelled</div>
+    </div>
+
+    <div class="bookings-list">
+      <div class="booking-item">
+        <div class="bi-top">
+          <div class="bi-img img-h1">&#127962;</div>
+          <div class="bi-info">
+            <div class="bi-name">Azure Cliff Resort & Spa</div>
+            <div class="bi-loc">&#128205; Uluwatu, Bali</div>
+            <div class="bi-dates">Jul 20 - Jul 25 (5 nights)</div>
+          </div>
+        </div>
+        <div class="bi-bottom">
+          <div class="bi-status bi-confirmed">Confirmed</div>
+          <div class="bi-price">$925</div>
+        </div>
+      </div>
+
+      <div class="booking-item">
+        <div class="bi-top">
+          <div class="bi-img img-h2">&#127958;</div>
+          <div class="bi-info">
+            <div class="bi-name">Golden Sands Beach Hotel</div>
+            <div class="bi-loc">&#128205; Seminyak, Bali</div>
+            <div class="bi-dates">Aug 10 - Aug 14 (4 nights)</div>
+          </div>
+        </div>
+        <div class="bi-bottom">
+          <div class="bi-status bi-upcoming">Pending</div>
+          <div class="bi-price">$480</div>
+        </div>
+      </div>
+
+      <div class="booking-item" style="opacity:0.7;">
+        <div class="bi-top">
+          <div class="bi-img img-h3">&#127795;</div>
+          <div class="bi-info">
+            <div class="bi-name">Jungle Retreat Ubud</div>
+            <div class="bi-loc">&#128205; Ubud, Bali</div>
+            <div class="bi-dates">Jun 1 - Jun 5 (4 nights)</div>
+          </div>
+        </div>
+        <div class="bi-bottom">
+          <div class="bi-status bi-completed">Completed</div>
+          <div class="bi-price">$380</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="whitelabel">whitelabel@alfaasolutions</div>
+    <div style="height:80px;"></div>
+
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('screen-explore')">
+        <div class="nav-icon">&#9750;</div><div class="nav-label">Explore</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-detail')">
+        <div class="nav-icon">&#128269;</div><div class="nav-label">Search</div>
+      </div>
+      <div class="nav-item active" onclick="showScreen('screen-bookings')">
+        <div class="nav-icon">&#128203;</div><div class="nav-label">Trips</div><div class="nav-dot"></div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-profile')">
+        <div class="nav-icon">&#128100;</div><div class="nav-label">Profile</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE SCREEN -->
+  <div class="screen stay-profile" id="screen-profile">
+    <div class="sp-header">
+      <div class="sp-avatar">&#128100;</div>
+      <div class="sp-name">James Fletcher</div>
+      <div class="sp-tier">PLATINUM MEMBER</div>
+      <div class="sp-stats">
+        <div class="sp-stat"><div class="sp-stat-num">18</div><div class="sp-stat-label">Trips</div></div>
+        <div class="sp-stat"><div class="sp-stat-num">42</div><div class="sp-stat-label">Nights</div></div>
+        <div class="sp-stat"><div class="sp-stat-num">2.4k</div><div class="sp-stat-label">Points</div></div>
+      </div>
+    </div>
+
+    <div class="sp-menu">
+      <div class="sp-group">
+        <div class="sp-item"><div class="sp-icon teal">&#128203;</div><div class="sp-text">My Bookings</div><div class="sp-arrow">&#8250;</div></div>
+        <div class="sp-item"><div class="sp-icon amber">&#11088;</div><div class="sp-text">Saved Hotels</div><div class="sp-arrow">&#8250;</div></div>
+        <div class="sp-item"><div class="sp-icon blue">&#127873;</div><div class="sp-text">Rewards Program</div><div class="sp-arrow">&#8250;</div></div>
+      </div>
+      <div class="sp-group">
+        <div class="sp-item"><div class="sp-icon pink">&#128179;</div><div class="sp-text">Payment Methods</div><div class="sp-arrow">&#8250;</div></div>
+        <div class="sp-item"><div class="sp-icon teal">&#9881;</div><div class="sp-text">Settings</div><div class="sp-arrow">&#8250;</div></div>
+        <div class="sp-item"><div class="sp-icon amber">&#128172;</div><div class="sp-text">Help & Support</div><div class="sp-arrow">&#8250;</div></div>
+      </div>
+    </div>
+
+    <div class="whitelabel">whitelabel@alfaasolutions</div>
+    <div style="height:80px;"></div>
+
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('screen-explore')">
+        <div class="nav-icon">&#9750;</div><div class="nav-label">Explore</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-detail')">
+        <div class="nav-icon">&#128269;</div><div class="nav-label">Search</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-bookings')">
+        <div class="nav-icon">&#128203;</div><div class="nav-label">Trips</div>
+      </div>
+      <div class="nav-item active" onclick="showScreen('screen-profile')">
+        <div class="nav-icon">&#128100;</div><div class="nav-label">Profile</div><div class="nav-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById(id).scrollTop = 0;
+}
+</script>
+</body>
+</html>

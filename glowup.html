@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GlowUp - Salon & Beauty Booking</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:#0a0a0a; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+
+.phone-frame {
+  width:375px; height:812px; background:#fff; border-radius:44px; overflow:hidden;
+  position:relative; box-shadow: 0 50px 100px rgba(0,0,0,0.5);
+  border: 8px solid #1a1a1a;
+}
+.notch {
+  position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:150px; height:34px; background:#1a1a1a; border-radius:0 0 20px 20px; z-index:100;
+}
+.screen { width:100%; height:100%; overflow-y:auto; overflow-x:hidden; position:relative; display:none; }
+.screen.active { display:block; }
+.screen::-webkit-scrollbar { display:none; }
+
+/* Colors */
+:root {
+  --rose: #e91e63;
+  --rose-light: #fce4ec;
+  --rose-dark: #c2185b;
+  --gold: #d4a574;
+  --gold-light: #f5e6d3;
+}
+
+/* ===== HOME SCREEN ===== */
+.home-screen { background:#fefefe; }
+.home-header { padding:50px 24px 0; display:flex; justify-content:space-between; align-items:center; }
+.home-logo { font-family:'Playfair Display',serif; font-size:28px; font-weight:900; color:#1a1a1a; }
+.home-logo span { color:var(--rose); }
+.home-notif { width:40px; height:40px; background:var(--rose-light); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; position:relative; }
+.notif-badge { position:absolute; top:2px; right:2px; width:10px; height:10px; background:var(--rose); border-radius:50%; border:2px solid #fff; }
+
+.hero-card {
+  margin:20px 24px; background: linear-gradient(135deg, #1a1a2e, #2d1b4e);
+  border-radius:24px; padding:28px; position:relative; overflow:hidden;
+}
+.hero-card::after {
+  content:''; position:absolute; top:-40px; right:-40px; width:160px; height:160px;
+  background: radial-gradient(circle, rgba(233,30,99,0.3), transparent);
+  border-radius:50%;
+}
+.hero-title { font-family:'Playfair Display',serif; font-size:24px; color:#fff; line-height:1.3; }
+.hero-title span { color:var(--gold); }
+.hero-sub { color:rgba(255,255,255,0.6); font-size:13px; margin-top:8px; }
+.hero-btn {
+  display:inline-block; margin-top:16px; background: linear-gradient(135deg, var(--rose), var(--rose-dark));
+  color:#fff; padding:10px 24px; border-radius:30px; font-size:13px; font-weight:700;
+  cursor:pointer; border:none;
+}
+
+.search-bar {
+  margin:20px 24px; background:#f7f7f7; border-radius:16px; padding:14px 18px;
+  display:flex; align-items:center; gap:10px; border:1px solid #eee;
+}
+.search-bar svg { width:18px; height:18px; color:#bbb; flex-shrink:0; }
+.search-bar span { color:#bbb; font-size:14px; }
+
+.section-header { display:flex; justify-content:space-between; align-items:center; padding:20px 24px 12px; }
+.section-title { font-size:18px; font-weight:700; color:#1a1a1a; }
+.section-link { font-size:13px; color:var(--rose); font-weight:600; }
+
+.services { display:flex; gap:12px; padding:0 24px; overflow-x:auto; }
+.services::-webkit-scrollbar { display:none; }
+.service-chip {
+  padding:10px 20px; border-radius:30px; font-size:13px; font-weight:600; white-space:nowrap;
+  cursor:pointer; transition: all 0.2s;
+}
+.service-chip.active { background: linear-gradient(135deg, var(--rose), var(--rose-dark)); color:#fff; }
+.service-chip:not(.active) { background:#f5f5f5; color:#666; }
+.service-chip:not(.active):hover { background:#eee; }
+
+.stylist-cards { padding:0 24px 10px; display:flex; gap:14px; overflow-x:auto; }
+.stylist-cards::-webkit-scrollbar { display:none; }
+.stylist-card {
+  min-width:160px; background:#fff; border-radius:20px; overflow:hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06); cursor:pointer; transition: transform 0.2s;
+}
+.stylist-card:hover { transform:translateY(-3px); }
+.stylist-img {
+  width:100%; height:140px; display:flex; align-items:center; justify-content:center; font-size:50px;
+  position:relative;
+}
+.stylist-img .stylist-rating {
+  position:absolute; bottom:8px; left:8px; background:rgba(0,0,0,0.7); color:#fff;
+  padding:3px 8px; border-radius:8px; font-size:11px; font-weight:600;
+}
+.stylist-info { padding:12px; }
+.stylist-name { font-size:14px; font-weight:700; color:#1a1a1a; }
+.stylist-specialty { font-size:12px; color:#888; margin-top:2px; }
+.stylist-price { font-size:14px; font-weight:700; color:var(--rose); margin-top:6px; }
+
+.img-s1 { background: linear-gradient(135deg, #fce4ec, #f8bbd0); }
+.img-s2 { background: linear-gradient(135deg, #e8eaf6, #c5cae9); }
+.img-s3 { background: linear-gradient(135deg, #fff3e0, #ffe0b2); }
+.img-s4 { background: linear-gradient(135deg, #e0f7fa, #b2ebf2); }
+
+.popular-services { padding:0 24px 20px; display:flex; flex-direction:column; gap:12px; }
+.pop-service {
+  background:#fff; border-radius:16px; padding:16px; display:flex; align-items:center; gap:14px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.04); cursor:pointer; transition: transform 0.2s;
+}
+.pop-service:hover { transform:translateX(3px); }
+.pop-icon {
+  width:50px; height:50px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; flex-shrink:0;
+}
+.pop-icon.rose { background:var(--rose-light); }
+.pop-icon.gold { background:var(--gold-light); }
+.pop-icon.lavender { background:#f3e5f5; }
+.pop-info { flex:1; }
+.pop-name { font-size:14px; font-weight:700; color:#1a1a1a; }
+.pop-detail { font-size:12px; color:#888; margin-top:2px; }
+.pop-price { font-size:16px; font-weight:800; color:var(--rose); }
+
+/* ===== BOOKING SCREEN ===== */
+.booking-screen { background:#fefefe; }
+.booking-header {
+  background: linear-gradient(135deg, #1a1a2e, #2d1b4e);
+  padding:50px 24px 30px; border-radius:0 0 30px 30px;
+}
+.book-back { color:#fff; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; }
+.book-title { color:#fff; font-size:24px; font-weight:800; margin-top:12px; font-family:'Playfair Display',serif; }
+.book-sub { color:rgba(255,255,255,0.6); font-size:13px; margin-top:4px; }
+
+.book-stylist-card {
+  margin:20px 24px; background:#fff; border-radius:20px; padding:20px; display:flex; gap:16px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.06);
+}
+.book-avatar {
+  width:70px; height:70px; border-radius:20px; display:flex; align-items:center; justify-content:center;
+  font-size:36px; background: linear-gradient(135deg, #fce4ec, #f8bbd0); flex-shrink:0;
+}
+.book-info { flex:1; }
+.book-name { font-size:16px; font-weight:700; color:#1a1a1a; }
+.book-spec { font-size:12px; color:#888; margin-top:2px; }
+.book-stats { display:flex; gap:16px; margin-top:8px; }
+.book-stat { font-size:12px; color:#555; }
+.book-stat strong { color:var(--rose); }
+
+.book-section { padding:0 24px; margin-top:24px; }
+.book-label { font-size:16px; font-weight:700; color:#1a1a1a; margin-bottom:12px; }
+
+.service-options { display:flex; flex-direction:column; gap:10px; }
+.service-opt {
+  background:#f8f8f8; border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:12px;
+  cursor:pointer; border:2px solid transparent; transition: all 0.2s;
+}
+.service-opt.selected { border-color:var(--rose); background:var(--rose-light); }
+.sopt-check {
+  width:22px; height:22px; border-radius:50%; border:2px solid #ddd; display:flex;
+  align-items:center; justify-content:center; font-size:12px; flex-shrink:0;
+}
+.service-opt.selected .sopt-check { background:var(--rose); border-color:var(--rose); color:#fff; }
+.sopt-info { flex:1; }
+.sopt-name { font-size:14px; font-weight:600; color:#333; }
+.sopt-dur { font-size:12px; color:#888; }
+.sopt-price { font-size:15px; font-weight:700; color:var(--rose); }
+
+.time-slots { display:flex; gap:10px; flex-wrap:wrap; }
+.time-slot {
+  padding:10px 18px; border-radius:12px; font-size:13px; font-weight:600;
+  cursor:pointer; border:2px solid #eee; background:#fff; transition: all 0.2s;
+}
+.time-slot.selected { background:var(--rose); color:#fff; border-color:var(--rose); }
+.time-slot:not(.selected):hover { border-color:var(--rose); }
+.time-slot.disabled { opacity:0.4; pointer-events:none; }
+
+.date-scroll { display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; }
+.date-scroll::-webkit-scrollbar { display:none; }
+.date-item {
+  min-width:60px; text-align:center; padding:12px 8px; border-radius:14px;
+  cursor:pointer; border:2px solid #eee; background:#fff; transition: all 0.2s;
+}
+.date-item.selected { background:var(--rose); border-color:var(--rose); }
+.date-day { font-size:11px; font-weight:600; color:#888; }
+.date-num { font-size:20px; font-weight:800; color:#333; margin-top:2px; }
+.date-item.selected .date-day, .date-item.selected .date-num { color:#fff; }
+
+.book-btn {
+  margin:30px 24px 20px; background: linear-gradient(135deg, var(--rose), var(--rose-dark));
+  color:#fff; border:none; border-radius:16px; padding:18px; width:calc(100% - 48px);
+  font-size:16px; font-weight:700; cursor:pointer;
+  box-shadow: 0 8px 25px rgba(233,30,99,0.3);
+}
+
+/* ===== APPOINTMENTS SCREEN ===== */
+.appt-screen { background:#fefefe; }
+.appt-header { padding:50px 24px 20px; }
+.appt-back { font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; color:#333; }
+.appt-title { font-size:24px; font-weight:800; color:#1a1a1a; margin-top:12px; font-family:'Playfair Display',serif; }
+
+.appt-tabs { display:flex; gap:0; margin:0 24px; background:#f5f5f5; border-radius:14px; padding:4px; }
+.appt-tab {
+  flex:1; text-align:center; padding:10px; font-size:13px; font-weight:600; border-radius:12px;
+  cursor:pointer; color:#888; transition: all 0.2s;
+}
+.appt-tab.active { background:#fff; color:#1a1a1a; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+
+.appt-list { padding:20px 24px; display:flex; flex-direction:column; gap:14px; }
+.appt-card {
+  background:#fff; border-radius:20px; padding:18px; box-shadow:0 4px 16px rgba(0,0,0,0.05);
+  border-left:4px solid var(--rose);
+}
+.appt-card.completed { border-left-color:#4caf50; opacity:0.8; }
+.appt-top { display:flex; justify-content:space-between; align-items:start; }
+.appt-service { font-size:16px; font-weight:700; color:#1a1a1a; }
+.appt-status {
+  padding:4px 10px; border-radius:8px; font-size:11px; font-weight:700;
+}
+.status-upcoming { background:#fff3e0; color:#ef6c00; }
+.status-confirmed { background:#e8f5e9; color:#2e7d32; }
+.status-completed { background:#f5f5f5; color:#888; }
+.appt-details { margin-top:10px; }
+.appt-detail { font-size:13px; color:#666; margin-top:4px; display:flex; align-items:center; gap:8px; }
+.appt-actions { display:flex; gap:10px; margin-top:14px; }
+.appt-action {
+  flex:1; padding:10px; border-radius:10px; font-size:13px; font-weight:600;
+  text-align:center; cursor:pointer; border:none;
+}
+.action-reschedule { background:#f5f5f5; color:#333; }
+.action-cancel { background:var(--rose-light); color:var(--rose); }
+
+/* ===== PROFILE SCREEN ===== */
+.glowup-profile { background:#fefefe; }
+.gp-header {
+  background: linear-gradient(135deg, #1a1a2e, #2d1b4e);
+  padding:50px 24px 40px; text-align:center; border-radius:0 0 30px 30px;
+  position:relative; overflow:hidden;
+}
+.gp-header::after {
+  content:''; position:absolute; top:-60px; right:-60px; width:200px; height:200px;
+  background:radial-gradient(circle, rgba(233,30,99,0.2), transparent); border-radius:50%;
+}
+.gp-avatar {
+  width:80px; height:80px; border-radius:50%; margin:0 auto;
+  background: linear-gradient(135deg, var(--rose), var(--rose-dark));
+  display:flex; align-items:center; justify-content:center; font-size:36px;
+  border:4px solid rgba(255,255,255,0.2);
+}
+.gp-name { color:#fff; font-size:20px; font-weight:800; margin-top:12px; font-family:'Playfair Display',serif; }
+.gp-member { color:var(--gold); font-size:12px; font-weight:600; margin-top:4px; letter-spacing:1px; }
+.gp-stats { display:flex; justify-content:center; gap:30px; margin-top:20px; }
+.gp-stat { text-align:center; }
+.gp-stat-num { color:var(--rose); font-size:22px; font-weight:800; }
+.gp-stat-label { color:rgba(255,255,255,0.5); font-size:11px; margin-top:2px; }
+
+.gp-menu { padding:24px; }
+.gp-menu-group { background:#fff; border-radius:20px; overflow:hidden; margin-bottom:16px; box-shadow:0 2px 10px rgba(0,0,0,0.04); }
+.gp-menu-item {
+  display:flex; align-items:center; gap:14px; padding:16px 20px;
+  border-bottom:1px solid #f5f5f5; cursor:pointer;
+}
+.gp-menu-item:last-child { border-bottom:none; }
+.gp-mi-icon {
+  width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  font-size:18px;
+}
+.gp-mi-icon.rose { background:var(--rose-light); }
+.gp-mi-icon.gold { background:var(--gold-light); }
+.gp-mi-icon.lav { background:#f3e5f5; }
+.gp-mi-icon.mint { background:#e0f2f1; }
+.gp-mi-text { flex:1; font-size:14px; font-weight:600; color:#333; }
+.gp-mi-arrow { color:#ccc; font-size:14px; }
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  position:absolute; bottom:0; left:0; right:0; height:80px;
+  background:rgba(255,255,255,0.95); backdrop-filter:blur(20px);
+  display:flex; justify-content:space-around; align-items:center;
+  padding-bottom:16px; border-top:1px solid #f0f0f0; z-index:50;
+}
+.nav-item { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; }
+.nav-item.active .nav-icon { color:var(--rose); }
+.nav-item.active .nav-label { color:var(--rose); }
+.nav-icon { font-size:22px; color:#bbb; }
+.nav-label { font-size:10px; font-weight:600; color:#bbb; }
+.nav-dot { width:5px; height:5px; background:var(--rose); border-radius:50%; margin-top:-2px; }
+
+.whitelabel { text-align:center; padding:14px; font-size:10px; color:#bbb; letter-spacing:0.5px; }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="notch"></div>
+
+  <!-- HOME SCREEN -->
+  <div class="screen home-screen active" id="screen-home">
+    <div class="home-header">
+      <div class="home-logo">Glow<span>Up</span></div>
+      <div class="home-notif">&#128276;<div class="notif-badge"></div></div>
+    </div>
+
+    <div class="hero-card">
+      <div class="hero-title">Your beauty, <span>your way.</span></div>
+      <div class="hero-sub">Book top stylists near you in seconds</div>
+      <button class="hero-btn" onclick="showScreen('screen-booking')">Book Now</button>
+    </div>
+
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <span>Search services, stylists...</span>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">Services</div>
+    </div>
+    <div class="services">
+      <div class="service-chip active">All</div>
+      <div class="service-chip">Haircut</div>
+      <div class="service-chip">Color</div>
+      <div class="service-chip">Nails</div>
+      <div class="service-chip">Facial</div>
+      <div class="service-chip">Massage</div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">Top Stylists</div>
+      <div class="section-link">See all</div>
+    </div>
+    <div class="stylist-cards">
+      <div class="stylist-card" onclick="showScreen('screen-booking')">
+        <div class="stylist-img img-s1">
+          &#128135;&#8205;&#9792;&#65039;
+          <div class="stylist-rating">&#9733; 4.9</div>
+        </div>
+        <div class="stylist-info">
+          <div class="stylist-name">Emma Rose</div>
+          <div class="stylist-specialty">Hair Specialist</div>
+          <div class="stylist-price">From $45</div>
+        </div>
+      </div>
+      <div class="stylist-card" onclick="showScreen('screen-booking')">
+        <div class="stylist-img img-s2">
+          &#128131;
+          <div class="stylist-rating">&#9733; 4.8</div>
+        </div>
+        <div class="stylist-info">
+          <div class="stylist-name">Mia Chen</div>
+          <div class="stylist-specialty">Nail Artist</div>
+          <div class="stylist-price">From $30</div>
+        </div>
+      </div>
+      <div class="stylist-card" onclick="showScreen('screen-booking')">
+        <div class="stylist-img img-s3">
+          &#128134;&#8205;&#9792;&#65039;
+          <div class="stylist-rating">&#9733; 5.0</div>
+        </div>
+        <div class="stylist-info">
+          <div class="stylist-name">Sofia Park</div>
+          <div class="stylist-specialty">Makeup & Facial</div>
+          <div class="stylist-price">From $55</div>
+        </div>
+      </div>
+      <div class="stylist-card" onclick="showScreen('screen-booking')">
+        <div class="stylist-img img-s4">
+          &#128129;
+          <div class="stylist-rating">&#9733; 4.7</div>
+        </div>
+        <div class="stylist-info">
+          <div class="stylist-name">Jade Williams</div>
+          <div class="stylist-specialty">Color Expert</div>
+          <div class="stylist-price">From $65</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">Popular Services</div>
+      <div class="section-link">See all</div>
+    </div>
+    <div class="popular-services">
+      <div class="pop-service" onclick="showScreen('screen-booking')">
+        <div class="pop-icon rose">&#9988;</div>
+        <div class="pop-info">
+          <div class="pop-name">Haircut & Blowdry</div>
+          <div class="pop-detail">45 min - 2,340 bookings</div>
+        </div>
+        <div class="pop-price">$45</div>
+      </div>
+      <div class="pop-service" onclick="showScreen('screen-booking')">
+        <div class="pop-icon gold">&#127912;</div>
+        <div class="pop-info">
+          <div class="pop-name">Full Balayage</div>
+          <div class="pop-detail">2.5 hrs - 1,890 bookings</div>
+        </div>
+        <div class="pop-price">$120</div>
+      </div>
+      <div class="pop-service" onclick="showScreen('screen-booking')">
+        <div class="pop-icon lavender">&#128133;</div>
+        <div class="pop-info">
+          <div class="pop-name">Gel Manicure</div>
+          <div class="pop-detail">30 min - 3,120 bookings</div>
+        </div>
+        <div class="pop-price">$35</div>
+      </div>
+    </div>
+
+    <div class="whitelabel">whitelabel@alfaasolutions</div>
+    <div style="height:80px;"></div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="showScreen('screen-home')">
+        <div class="nav-icon">&#9750;</div><div class="nav-label">Home</div><div class="nav-dot"></div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-booking')">
+        <div class="nav-icon">&#128197;</div><div class="nav-label">Book</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-appts')">
+        <div class="nav-icon">&#128203;</div><div class="nav-label">Appts</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-profile')">
+        <div class="nav-icon">&#128100;</div><div class="nav-label">Profile</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOKING SCREEN -->
+  <div class="screen booking-screen" id="screen-booking">
+    <div class="booking-header">
+      <div class="book-back" onclick="showScreen('screen-home')">&#8592; Back</div>
+      <div class="book-title">Book Appointment</div>
+      <div class="book-sub">Choose your service and time</div>
+    </div>
+
+    <div class="book-stylist-card">
+      <div class="book-avatar">&#128135;&#8205;&#9792;&#65039;</div>
+      <div class="book-info">
+        <div class="book-name">Emma Rose</div>
+        <div class="book-spec">Hair Specialist - 8 yrs experience</div>
+        <div class="book-stats">
+          <div class="book-stat">&#9733; <strong>4.9</strong></div>
+          <div class="book-stat"><strong>2.4k</strong> reviews</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="book-section">
+      <div class="book-label">Select Service</div>
+      <div class="service-options">
+        <div class="service-opt selected" onclick="this.parentElement.querySelectorAll('.service-opt').forEach(s=>s.classList.remove('selected'));this.classList.add('selected')">
+          <div class="sopt-check">&#10003;</div>
+          <div class="sopt-info"><div class="sopt-name">Haircut & Blowdry</div><div class="sopt-dur">45 min</div></div>
+          <div class="sopt-price">$45</div>
+        </div>
+        <div class="service-opt" onclick="this.parentElement.querySelectorAll('.service-opt').forEach(s=>s.classList.remove('selected'));this.classList.add('selected')">
+          <div class="sopt-check">&#10003;</div>
+          <div class="sopt-info"><div class="sopt-name">Hair Coloring</div><div class="sopt-dur">2 hrs</div></div>
+          <div class="sopt-price">$85</div>
+        </div>
+        <div class="service-opt" onclick="this.parentElement.querySelectorAll('.service-opt').forEach(s=>s.classList.remove('selected'));this.classList.add('selected')">
+          <div class="sopt-check">&#10003;</div>
+          <div class="sopt-info"><div class="sopt-name">Full Balayage</div><div class="sopt-dur">2.5 hrs</div></div>
+          <div class="sopt-price">$120</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="book-section">
+      <div class="book-label">Select Date</div>
+      <div class="date-scroll">
+        <div class="date-item"><div class="date-day">Mon</div><div class="date-num">14</div></div>
+        <div class="date-item selected"><div class="date-day">Tue</div><div class="date-num">15</div></div>
+        <div class="date-item"><div class="date-day">Wed</div><div class="date-num">16</div></div>
+        <div class="date-item"><div class="date-day">Thu</div><div class="date-num">17</div></div>
+        <div class="date-item"><div class="date-day">Fri</div><div class="date-num">18</div></div>
+        <div class="date-item"><div class="date-day">Sat</div><div class="date-num">19</div></div>
+      </div>
+    </div>
+
+    <div class="book-section">
+      <div class="book-label">Available Time</div>
+      <div class="time-slots">
+        <div class="time-slot disabled">9:00</div>
+        <div class="time-slot">10:00</div>
+        <div class="time-slot selected">11:00</div>
+        <div class="time-slot">12:00</div>
+        <div class="time-slot">14:00</div>
+        <div class="time-slot disabled">15:00</div>
+        <div class="time-slot">16:00</div>
+        <div class="time-slot">17:00</div>
+      </div>
+    </div>
+
+    <button class="book-btn" onclick="showScreen('screen-appts')">Confirm Booking - $45</button>
+
+    <div class="whitelabel">whitelabel@alfaasolutions</div>
+    <div style="height:80px;"></div>
+
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('screen-home')">
+        <div class="nav-icon">&#9750;</div><div class="nav-label">Home</div>
+      </div>
+      <div class="nav-item active" onclick="showScreen('screen-booking')">
+        <div class="nav-icon">&#128197;</div><div class="nav-label">Book</div><div class="nav-dot"></div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-appts')">
+        <div class="nav-icon">&#128203;</div><div class="nav-label">Appts</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-profile')">
+        <div class="nav-icon">&#128100;</div><div class="nav-label">Profile</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPOINTMENTS SCREEN -->
+  <div class="screen appt-screen" id="screen-appts">
+    <div class="appt-header">
+      <div class="appt-back" onclick="showScreen('screen-home')">&#8592; Back</div>
+      <div class="appt-title">My Appointments</div>
+    </div>
+
+    <div class="appt-tabs">
+      <div class="appt-tab active">Upcoming</div>
+      <div class="appt-tab">Completed</div>
+    </div>
+
+    <div class="appt-list">
+      <div class="appt-card">
+        <div class="appt-top">
+          <div class="appt-service">Haircut & Blowdry</div>
+          <div class="appt-status status-confirmed">Confirmed</div>
+        </div>
+        <div class="appt-details">
+          <div class="appt-detail">&#128197; Tuesday, Jul 15 at 11:00 AM</div>
+          <div class="appt-detail">&#128135;&#8205;&#9792;&#65039; Emma Rose - Hair Specialist</div>
+          <div class="appt-detail">&#128176; $45.00</div>
+        </div>
+        <div class="appt-actions">
+          <button class="appt-action action-reschedule">Reschedule</button>
+          <button class="appt-action action-cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div class="appt-card">
+        <div class="appt-top">
+          <div class="appt-service">Gel Manicure</div>
+          <div class="appt-status status-upcoming">Pending</div>
+        </div>
+        <div class="appt-details">
+          <div class="appt-detail">&#128197; Friday, Jul 18 at 2:00 PM</div>
+          <div class="appt-detail">&#128131; Mia Chen - Nail Artist</div>
+          <div class="appt-detail">&#128176; $35.00</div>
+        </div>
+        <div class="appt-actions">
+          <button class="appt-action action-reschedule">Reschedule</button>
+          <button class="appt-action action-cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div class="appt-card completed">
+        <div class="appt-top">
+          <div class="appt-service">Full Balayage</div>
+          <div class="appt-status status-completed">Completed</div>
+        </div>
+        <div class="appt-details">
+          <div class="appt-detail">&#128197; Saturday, Jul 5 at 10:00 AM</div>
+          <div class="appt-detail">&#128129; Jade Williams - Color Expert</div>
+          <div class="appt-detail">&#128176; $120.00</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="whitelabel">whitelabel@alfaasolutions</div>
+    <div style="height:80px;"></div>
+
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('screen-home')">
+        <div class="nav-icon">&#9750;</div><div class="nav-label">Home</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-booking')">
+        <div class="nav-icon">&#128197;</div><div class="nav-label">Book</div>
+      </div>
+      <div class="nav-item active" onclick="showScreen('screen-appts')">
+        <div class="nav-icon">&#128203;</div><div class="nav-label">Appts</div><div class="nav-dot"></div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-profile')">
+        <div class="nav-icon">&#128100;</div><div class="nav-label">Profile</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE SCREEN -->
+  <div class="screen glowup-profile" id="screen-profile">
+    <div class="gp-header">
+      <div class="gp-avatar">&#128131;</div>
+      <div class="gp-name">Amelia Hart</div>
+      <div class="gp-member">GOLD MEMBER</div>
+      <div class="gp-stats">
+        <div class="gp-stat"><div class="gp-stat-num">24</div><div class="gp-stat-label">Visits</div></div>
+        <div class="gp-stat"><div class="gp-stat-num">5</div><div class="gp-stat-label">Stylists</div></div>
+        <div class="gp-stat"><div class="gp-stat-num">$340</div><div class="gp-stat-label">Saved</div></div>
+      </div>
+    </div>
+
+    <div class="gp-menu">
+      <div class="gp-menu-group">
+        <div class="gp-menu-item"><div class="gp-mi-icon rose">&#128131;</div><div class="gp-mi-text">My Bookings</div><div class="gp-mi-arrow">&#8250;</div></div>
+        <div class="gp-menu-item"><div class="gp-mi-icon gold">&#11088;</div><div class="gp-mi-text">Favorite Stylists</div><div class="gp-mi-arrow">&#8250;</div></div>
+        <div class="gp-menu-item"><div class="gp-mi-icon lav">&#127873;</div><div class="gp-mi-text">Rewards & Offers</div><div class="gp-mi-arrow">&#8250;</div></div>
+      </div>
+      <div class="gp-menu-group">
+        <div class="gp-menu-item"><div class="gp-mi-icon mint">&#128179;</div><div class="gp-mi-text">Payment Methods</div><div class="gp-mi-arrow">&#8250;</div></div>
+        <div class="gp-menu-item"><div class="gp-mi-icon rose">&#9881;</div><div class="gp-mi-text">Settings</div><div class="gp-mi-arrow">&#8250;</div></div>
+        <div class="gp-menu-item"><div class="gp-mi-icon gold">&#128172;</div><div class="gp-mi-text">Help & Support</div><div class="gp-mi-arrow">&#8250;</div></div>
+      </div>
+    </div>
+
+    <div class="whitelabel">whitelabel@alfaasolutions</div>
+    <div style="height:80px;"></div>
+
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="showScreen('screen-home')">
+        <div class="nav-icon">&#9750;</div><div class="nav-label">Home</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-booking')">
+        <div class="nav-icon">&#128197;</div><div class="nav-label">Book</div>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-appts')">
+        <div class="nav-icon">&#128203;</div><div class="nav-label">Appts</div>
+      </div>
+      <div class="nav-item active" onclick="showScreen('screen-profile')">
+        <div class="nav-icon">&#128100;</div><div class="nav-label">Profile</div><div class="nav-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById(id).scrollTop = 0;
+}
+</script>
+</body>
+</html>
